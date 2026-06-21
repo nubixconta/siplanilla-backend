@@ -1,6 +1,7 @@
 package sv.edu.ues.fia.siplanilla_backend.modules.auth.service;
 
 import sv.edu.ues.fia.siplanilla_backend.exception.BusinessException;
+import sv.edu.ues.fia.siplanilla_backend.exception.AccountLockedException;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.entity.DesbloqueoToken;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.repository.DesbloqueoTokenRepository;
 import sv.edu.ues.fia.siplanilla_backend.modules.seguridad.entity.Usuario;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ public class DesbloqueoService {
     private final DesbloqueoTokenRepository desbloqueoTokenRepository;
     private final UsuarioRepository usuarioRepository;
     private final EmailService emailService;
+    private final EntityManager entityManager;
 
     @Value("${app.desbloqueo.max-intentos:3}")
     private Integer maxIntentos;
@@ -46,12 +49,14 @@ public class DesbloqueoService {
             usuario.setUsuBloqueado(true);
             usuario.setUsuFechaBloqueo(LocalDateTime.now());
             usuarioRepository.save(usuario);
+            entityManager.flush();
 
             // Generar token y enviar correo de desbloqueo
             generarTokenDesbloqueo(usuario);
             log.warn("Usuario {} bloqueado después de {} intentos fallidos", username, intentoActual);
         } else {
             usuarioRepository.save(usuario);
+            entityManager.flush();
             log.info("Usuario {} tiene {} intentos fallidos", username, intentoActual);
         }
     }
@@ -76,6 +81,7 @@ public class DesbloqueoService {
                 .build();
 
         desbloqueoTokenRepository.save(desbloqueo);
+        entityManager.flush();
 
         // Enviar correo
         String nombreUsuario = usuario.getEmpleado() != null ?
@@ -133,10 +139,12 @@ public class DesbloqueoService {
         usuario.setUsuIntentosFallidos(0);
         usuario.setUsuFechaBloqueo(null);
         usuarioRepository.save(usuario);
+        entityManager.flush(); // Asegurar que se guarden los cambios en la BD
 
         // Marcar token como utilizado
         desbloqueo.setTokUsado(1);
         desbloqueoTokenRepository.save(desbloqueo);
+        entityManager.flush();
 
         // Enviar correo de confirmación
         String nombreUsuario = usuario.getEmpleado() != null ?
@@ -158,6 +166,7 @@ public class DesbloqueoService {
 
         usuario.setUsuIntentosFallidos(0);
         usuarioRepository.save(usuario);
+        entityManager.flush();
     }
 
     /**
@@ -168,7 +177,10 @@ public class DesbloqueoService {
                 .orElseThrow(() -> new BusinessException("Usuario no encontrado"));
 
         if (usuario.getUsuBloqueado() != null && usuario.getUsuBloqueado()) {
-            throw new RuntimeException("Cuenta bloqueada. Revisa tu correo para desbloquearla.");
+            throw new AccountLockedException(
+                "Cuenta bloqueada. Revisa tu correo para desbloquearla con el link que te enviamos.",
+                username
+            );
         }
     }
 }

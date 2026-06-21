@@ -5,6 +5,7 @@ import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.request.LoginRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.request.RegisterRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.request.SolicitarDesbloqueoRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.response.AuthResponse;
+import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.response.AccountStatusDto;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.service.AuthService;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.service.DesbloqueoService;
 import sv.edu.ues.fia.siplanilla_backend.util.ApiResponse;
@@ -75,6 +76,23 @@ public class AuthController {
                         .success(true)
                         .message("Desbloqueo exitoso")
                         .data(mensaje)
+                        .build()
+        );
+    }
+
+    /**
+     * Verificar estado de la cuenta (bloqueada o activa)
+     * Endpoint PÚBLICO para que el frontend sepa si debe mostrar el formulario de desbloqueo
+     */
+    @GetMapping("/verificar-estado/{username}")
+    public ResponseEntity<ApiResponse<AccountStatusDto>> verificarEstado(
+            @PathVariable String username) {
+        AccountStatusDto status = authService.verificarEstadoCuenta(username);
+        return ResponseEntity.ok(
+                ApiResponse.<AccountStatusDto>builder()
+                        .success(true)
+                        .message("Estado de cuenta verificado")
+                        .data(status)
                         .build()
         );
     }

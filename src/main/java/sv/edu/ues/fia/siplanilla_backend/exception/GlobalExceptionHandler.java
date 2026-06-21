@@ -29,6 +29,20 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccountLocked(
+            AccountLockedException ex, HttpServletRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.LOCKED.value());
+        body.put("error", "Account Locked");
+        body.put("message", ex.getMessage());
+        body.put("username", ex.getUsername());
+        body.put("path", request.getRequestURI());
+        body.put("errorCode", "ACCOUNT_LOCKED");
+        return ResponseEntity.status(HttpStatus.LOCKED).body(body);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {

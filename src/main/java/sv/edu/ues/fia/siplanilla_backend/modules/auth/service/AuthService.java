@@ -3,6 +3,7 @@ package sv.edu.ues.fia.siplanilla_backend.modules.auth.service;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.request.LoginRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.request.RegisterRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.response.AuthResponse;
+import sv.edu.ues.fia.siplanilla_backend.modules.auth.dto.response.AccountStatusDto;
 import sv.edu.ues.fia.siplanilla_backend.modules.empleado.entity.Empleado;
 import sv.edu.ues.fia.siplanilla_backend.modules.empleado.repository.EmpleadoRepository;
 import sv.edu.ues.fia.siplanilla_backend.modules.seguridad.entity.Usuario;
@@ -92,9 +93,12 @@ public class AuthService {
         }
 
 
-        Empleado empleado = empleadoRepository.findById(registerRequest.getIdEmpleado())
-                .orElseThrow(() -> new BusinessException("Empleado no encontrado con id: "
-                        + registerRequest.getIdEmpleado()));
+        Empleado empleado = null;
+        if (registerRequest.getIdEmpleado() != null) {
+            empleado = empleadoRepository.findById(registerRequest.getIdEmpleado())
+                    .orElseThrow(() -> new BusinessException("Empleado no encontrado con id: "
+                            + registerRequest.getIdEmpleado()));
+        }
 
         Usuario usuario = Usuario.builder()
                 .usuUsername(registerRequest.getUsername())
@@ -120,6 +124,45 @@ public class AuthService {
                 .tokenType("Bearer")
                 .expiresIn(expiresIn)
                 .user(usuarioDto)
+                .build();
+    }
+
+    /**
+     * Verificar el estado de una cuenta sin requerir contraseña.
+     * Útil para que el frontend sepa si debe mostrar formulario de desbloqueo.
+     * 
+     * Mapeo de valores:
+     * usu_bloqueado = 0 (BD) → bloqueado: false (JSON)
+     * usu_bloqueado = 1 (BD) → bloqueado: true (JSON)
+     */
+    public AccountStatusDto verificarEstadoCuenta(String username) {
+        var usuario = usuarioRepository.findByUsuUsername(username);
+
+        if (usuario.isEmpty()) {
+            return AccountStatusDto.builder()
+                    .username(username)
+                    .existe(false)
+                    .bloqueado(false)
+                    .activo(false)
+                    .mensaje("Usuario no encontrado")
+                    .build();
+        }
+
+        Usuario u = usuario.get();
+        boolean estaActivo = u.getUsuEstado() != null && u.getUsuEstado();
+        boolean estaBloqueado = u.getUsuBloqueado() != null && u.getUsuBloqueado();
+
+        log.debug("Usuario {} - BD bloqueado: {}, Convertido a: {}", 
+                username, u.getUsuBloqueado(), estaBloqueado);
+
+        return AccountStatusDto.builder()
+                .username(username)
+                .existe(true)
+                .bloqueado(estaBloqueado)
+                .activo(estaActivo)
+                .mensaje(estaBloqueado ? "Cuenta bloqueada. Solicita desbloqueo." 
+                        : (estaActivo ? "Cuenta activa. Puedes iniciar sesión." 
+                           : "Cuenta inactiva."))
                 .build();
     }
 }

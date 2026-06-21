@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import sv.edu.ues.fia.siplanilla_backend.modules.empleado.entity.Empleado;
+import sv.edu.ues.fia.siplanilla_backend.config.BooleanToNumberConverter;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -30,6 +31,7 @@ public class Usuario implements UserDetails {
     private String usuPassword;
 
     @Column(name = "usu_estado")
+    @Convert(converter = BooleanToNumberConverter.class)
     private Boolean usuEstado;
 
     @Column(name = "usu_correo")
@@ -39,6 +41,7 @@ public class Usuario implements UserDetails {
     private Integer usuIntentosFallidos = 0;
 
     @Column(name = "usu_bloqueado")
+    @Convert(converter = BooleanToNumberConverter.class)
     private Boolean usuBloqueado = false;
 
     @Column(name = "usu_fecha_bloqueo")
@@ -46,7 +49,7 @@ public class Usuario implements UserDetails {
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "id_empleado", nullable = false)
+    @JoinColumn(name = "id_empleado", nullable = true)
     private Empleado empleado;
 
     @Override

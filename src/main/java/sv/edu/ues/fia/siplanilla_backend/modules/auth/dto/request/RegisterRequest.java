@@ -27,6 +27,5 @@ public class RegisterRequest {
     @Size(min = 6, message = "La contraseña debe tener mínimo 6 caracteres")
     private String password;
 
-    @NotNull(message = "El id del empleado es requerido")
     private Long idEmpleado;
 }
