@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sv.edu.ues.fia.siplanilla_backend.modules.catalogo.dto.request.TipoIngresoRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.catalogo.dto.response.TipoIngresoResponse;
@@ -13,10 +14,10 @@ import sv.edu.ues.fia.siplanilla_backend.util.ApiResponse;
 
 import java.util.List;
 
-// PATRÓN DE REFERENCIA
 @RestController
 @RequestMapping("/catalogos/tipos-ingreso")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('Administrador')")
 @Tag(name = "Catálogos")
 public class TipoIngresoController {
 

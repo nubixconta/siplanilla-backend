@@ -8,6 +8,7 @@ import sv.edu.ues.fia.siplanilla_backend.modules.empleado.entity.Empleado;
 import sv.edu.ues.fia.siplanilla_backend.config.BooleanToNumberConverter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,9 +53,14 @@ public class Usuario implements UserDetails {
     @JoinColumn(name = "id_empleado", nullable = true)
     private Empleado empleado;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<GrantedAuthority> authorities;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return this.authorities != null ? this.authorities : List.of();
     }
 
     @Override

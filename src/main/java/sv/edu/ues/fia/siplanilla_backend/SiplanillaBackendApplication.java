@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SiplanillaBackendApplication {
 
 	public static void main(String[] args) {
+
+		System.out.println("PROYECTO CARGADO CORRECTAMENTEEE");
 		SpringApplication.run(SiplanillaBackendApplication.class, args);
 	}
 

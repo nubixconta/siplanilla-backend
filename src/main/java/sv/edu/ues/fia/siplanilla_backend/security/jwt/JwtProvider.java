@@ -7,11 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import sv.edu.ues.fia.siplanilla_backend.modules.seguridad.entity.Usuario;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -37,6 +40,22 @@ public class JwtProvider {
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", username);
         return createToken(claims, username);
+    }
+
+    /**
+     * Genera token incluyendo roles e idEmpleado en los claims.
+     * Usado por AuthService tras autenticar o registrar un usuario.
+     */
+    public String generateToken(Usuario usuario, List<String> roles) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", usuario.getUsuUsername());
+        claims.put("roles", roles.stream()
+                .map(r -> "ROLE_" + r)
+                .collect(Collectors.toList()));
+        if (usuario.getEmpleado() != null) {
+            claims.put("idEmpleado", usuario.getEmpleado().getIdEmpleado());
+        }
+        return createToken(claims, usuario.getUsuUsername());
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -69,6 +88,22 @@ public class JwtProvider {
         } catch (Exception e) {
             log.error("Error al obtener fecha de expiración del token", e);
             return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getRolesFromToken(String token) {
+        try {
+            Claims claims = getAllClaimsFromToken(token);
+            Object rolesObj = claims.get("roles");
+            if (rolesObj instanceof List<?>) {
+                return ((List<?>) rolesObj).stream()
+                        .map(Object::toString)
+                        .collect(Collectors.toList());
+            }
+            return List.of();
+        } catch (Exception e) {
+            return List.of();
         }
     }
 
