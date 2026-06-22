@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -176,7 +178,7 @@ public class AuthService {
                 .activo(estaActivo)
                 .mensaje(estaBloqueado ? "Cuenta bloqueada. Solicita desbloqueo."
                         : (estaActivo ? "Cuenta activa. Puedes iniciar sesión."
-                           : "Cuenta inactiva."))
+                        : "Cuenta inactiva."))
                 .build();
     }
 }
