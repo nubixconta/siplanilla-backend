@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sv.edu.ues.fia.siplanilla_backend.modules.catalogo.dto.request.TipoDescuentoRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.catalogo.dto.response.TipoDescuentoResponse;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/catalogos/tipos-descuento")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('Administrador')")
 @Tag(name = "Catálogos")
 public class TipoDescuentoController {
 

@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sv.edu.ues.fia.siplanilla_backend.modules.planilla.dto.request.DescuentoRequest;
 import sv.edu.ues.fia.siplanilla_backend.modules.planilla.dto.response.DescuentoResponse;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/planilla/descuentos")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('Administrador','RRHH')")
 @Tag(name = "Planilla - Descuentos")
 public class DescuentoController {
 

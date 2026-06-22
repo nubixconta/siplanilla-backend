@@ -7,6 +7,7 @@ import sv.edu.ues.fia.siplanilla_backend.modules.empleado.entity.Empleado;
 import sv.edu.ues.fia.siplanilla_backend.modules.empleado.repository.EmpleadoRepository;
 import sv.edu.ues.fia.siplanilla_backend.modules.seguridad.entity.Usuario;
 import sv.edu.ues.fia.siplanilla_backend.modules.seguridad.repository.UsuarioRepository;
+import sv.edu.ues.fia.siplanilla_backend.modules.seguridad.repository.UsuarioRolRepository;
 import sv.edu.ues.fia.siplanilla_backend.exception.BusinessException;
 import sv.edu.ues.fia.siplanilla_backend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UsuarioRepository usuarioRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final UsuarioRolRepository usuarioRolRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final DesbloqueoService desbloqueoService;
@@ -34,10 +39,8 @@ public class AuthService {
     @Transactional
     public AuthResponse login(LoginRequest loginRequest) {
         try {
-            // 1. Validar que el usuario no está bloqueado
             desbloqueoService.validarBloqueado(loginRequest.getUsername());
 
-            // 2. Intentar autenticar
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
@@ -50,16 +53,26 @@ public class AuthService {
             Usuario usuario = usuarioRepository.findByUsuUsername(loginRequest.getUsername())
                     .orElseThrow(() -> new BusinessException("Usuario no encontrado"));
 
-            // 3. Resetear intentos fallidos en login exitoso
             desbloqueoService.resetearIntentosFallidos(loginRequest.getUsername());
 
-            String token = jwtProvider.generateToken(usuario);
+            List<String> roles = usuarioRolRepository.findByUsuarioWithRol(usuario)
+                    .stream()
+                    .map(ur -> ur.getRol().getRolNombre())
+                    .collect(Collectors.toList());
+
+            Long idEmpleado = usuario.getEmpleado() != null
+                    ? usuario.getEmpleado().getIdEmpleado()
+                    : null;
+
+            String token = jwtProvider.generateToken(usuario, roles);
             Long expiresIn = jwtProvider.getExpirationTime();
 
             AuthResponse.UsuarioDto usuarioDto = AuthResponse.UsuarioDto.builder()
                     .id(usuario.getIdUsuario())
                     .username(usuario.getUsuUsername())
                     .email(usuario.getUsuCorreo())
+                    .roles(roles)
+                    .idEmpleado(idEmpleado)
                     .build();
 
             return AuthResponse.builder()
@@ -70,7 +83,6 @@ public class AuthService {
                     .build();
 
         } catch (Exception e) {
-            // 4. Registrar intento fallido
             try {
                 desbloqueoService.registrarIntentoFallido(loginRequest.getUsername());
             } catch (Exception ex) {
@@ -91,7 +103,6 @@ public class AuthService {
             throw new BusinessException("El email ya está registrado");
         }
 
-
         Empleado empleado = empleadoRepository.findById(registerRequest.getIdEmpleado())
                 .orElseThrow(() -> new BusinessException("Empleado no encontrado con id: "
                         + registerRequest.getIdEmpleado()));
@@ -101,18 +112,30 @@ public class AuthService {
                 .usuCorreo(registerRequest.getEmail())
                 .usuPassword(passwordEncoder.encode(registerRequest.getPassword()))
                 .usuEstado(true)
-                .empleado(empleado) // ← NUEVO
+                .empleado(empleado)
                 .build();
 
         usuario = usuarioRepository.save(usuario);
 
-        String token = jwtProvider.generateToken(usuario);
+        // Al registrar no hay roles asignados aún — el admin los asigna después
+        List<String> roles = usuarioRolRepository.findByUsuarioWithRol(usuario)
+                .stream()
+                .map(ur -> ur.getRol().getRolNombre())
+                .collect(Collectors.toList());
+
+        Long idEmpleado = usuario.getEmpleado() != null
+                ? usuario.getEmpleado().getIdEmpleado()
+                : null;
+
+        String token = jwtProvider.generateToken(usuario, roles);
         Long expiresIn = jwtProvider.getExpirationTime();
 
         AuthResponse.UsuarioDto usuarioDto = AuthResponse.UsuarioDto.builder()
                 .id(usuario.getIdUsuario())
                 .username(usuario.getUsuUsername())
                 .email(usuario.getUsuCorreo())
+                .roles(roles)
+                .idEmpleado(idEmpleado)
                 .build();
 
         return AuthResponse.builder()
@@ -123,4 +146,3 @@ public class AuthService {
                 .build();
     }
 }
-

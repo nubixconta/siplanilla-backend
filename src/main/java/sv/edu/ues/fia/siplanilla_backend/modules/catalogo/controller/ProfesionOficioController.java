@@ -5,6 +5,7 @@ import sv.edu.ues.fia.siplanilla_backend.modules.catalogo.service.ProfesionOfici
 import sv.edu.ues.fia.siplanilla_backend.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @RequestMapping("/v1/catalogo/profesiones")
 @CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('Administrador','RRHH')")
 public class ProfesionOficioController {
 
     private final ProfesionOficioService profesionOficioService;

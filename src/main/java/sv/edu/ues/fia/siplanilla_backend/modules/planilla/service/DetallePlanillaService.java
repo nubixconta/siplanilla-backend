@@ -6,4 +6,5 @@ import java.util.List;
 public interface DetallePlanillaService {
     List<DetallePlanillaResponse> findAll();
     DetallePlanillaResponse findById(Long id);
+    List<DetallePlanillaResponse> findByUsernameEmpleado(String username);
 }
