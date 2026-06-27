@@ -1,0 +1,12 @@
+planillasdb_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g8fa7500b22c7c3_planillasdb_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+planillasdb_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g8fa7500b22c7c3_planillasdb_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+planillasdb_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g8fa7500b22c7c3_planillasdb_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+planillasdb_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g8fa7500b22c7c3_planillasdb_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+planillasdb_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g8fa7500b22c7c3_planillasdb_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+
