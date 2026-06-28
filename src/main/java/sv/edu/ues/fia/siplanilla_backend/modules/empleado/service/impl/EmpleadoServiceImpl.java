@@ -284,11 +284,32 @@ public class EmpleadoServiceImpl implements EmpleadoService {
             throw new RuntimeException("Estado inválido. Use 1=Activo o 0=Inactivo.");
         }
 
+        // Convertir Integer a Boolean
+        Boolean nuevoEstado = (estado == 1);
+        Boolean estadoActual = empleado.getEmpEstado();
+
+        // VALIDACIÓN: Si se intenta desactivar (estado = 0) y ya está inactivo, avisar
+        if (nuevoEstado == false && (estadoActual == null || !estadoActual)) {
+            throw new RuntimeException("El empleado ya está inactivo.");
+        }
+
+        // VALIDACIÓN: Si se intenta activar (estado = 1) y ya está activo, avisar
+        if (nuevoEstado == true && estadoActual != null && estadoActual) {
+            throw new RuntimeException("El empleado ya está activo.");
+        }
+
         // Llamar al procedimiento Oracle para cambiar estado
         try {
             empleadoRepository.cambiarEstadoEmpleado(id, estado);
         } catch (Exception e) {
-            throw new RuntimeException("Error al cambiar estado del empleado: " + e.getMessage());
+            String errorMsg = e.getMessage();
+            // Manejo de errores específicos del procedimiento Oracle
+            if (errorMsg != null && errorMsg.contains("-20001")) {
+                throw new RuntimeException("Estado inválido.");
+            } else if (errorMsg != null && errorMsg.contains("-20002")) {
+                throw new ResourceNotFoundException("Empleado", id);
+            }
+            throw new RuntimeException("Error al cambiar estado del empleado: " + errorMsg);
         }
 
         // Obtener el empleado actualizado
