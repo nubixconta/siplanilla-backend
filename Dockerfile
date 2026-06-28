@@ -7,18 +7,13 @@ COPY . .
 
 RUN mvn clean package -DskipTests
 
-RUN echo "Contenido de target:"
-RUN ls -la /app/target
-
 # Runtime stage
 FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar /app/app.jar
-
-RUN echo "Contenido de /app:"
-RUN ls -la /app
+COPY --from=build /app/src/main/resources/wallet /app/wallet
 
 EXPOSE 8080
 
